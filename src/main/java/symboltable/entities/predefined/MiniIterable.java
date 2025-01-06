@@ -59,8 +59,8 @@ public class MiniIterable {
         object.setAbstract();
         addTypeVar();
         addStart();
-        addNext();
         addHasNext();
+        addNext();
         SymbolTable.actualClass = actualClass;
     }
 

@@ -81,7 +81,7 @@ public class LocalVar extends Statement {
                     type.getName(),
                     valueType.getName()
                 ),
-                getIdentifier() // TODO: Check if this is the correct token
+                getIdentifier()
             );
         }
 

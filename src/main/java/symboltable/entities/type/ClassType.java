@@ -116,7 +116,7 @@ public class ClassType extends Type {
     }
 
     private boolean match(Type type) {
-        if (type instanceof TypeVar typeVar) type = typeVar.getInstaceType(); // TODO: super check please do check this
+        if (type instanceof TypeVar typeVar) type = typeVar.getInstaceType();
         if (type == null) return false;
         boolean match = Objects.equals(this.getName(), type.getName()) &&
                         this.getTypeParamsCount() == type.getTypeParamsCount();

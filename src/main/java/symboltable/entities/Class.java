@@ -4,11 +4,9 @@ import main.java.model.Token;
 
 import main.java.model.TokenType;
 import main.java.symboltable.SymbolTable;
-import main.java.symboltable.entities.type.ClassType;
 import main.java.symboltable.entities.type.Type;
 import main.java.symboltable.entities.type.TypeVar;
 import main.java.symboltable.entities.ast.Block;
-import main.java.symboltable.entities.predefined.MiniIterable;
 import main.java.symboltable.entities.predefined.Object;
 import main.java.symboltable.entities.predefined.Wrapper;
 import main.java.codegen.Instruction;
@@ -91,7 +89,6 @@ public class Class extends Entity {
 
         inheritAttributes(superClass);
         inheritMethods(superClass);
-        inheritAbstractMethods(superClass);
         if(!isAbstract() && !abstractMethods.isEmpty()) abstractMethodsNotImplemented();
 
         setMethodsOffsets();
@@ -165,10 +162,11 @@ public class Class extends Entity {
             Labeler.getLabel(CodegenConfig.LABEL, vt_label),
             Instruction.DW.toString(),
             dynamic_methods_list.stream()
+                .filter(method -> !(method instanceof AbstractMethod))
                 .sorted(Comparator.comparingInt(Method::getOffset))
                 .map(Method::getLabel)
                 .collect(Collectors.joining(", ")
-            ) + (dynamic_methods_list.isEmpty()? "0":"")
+            ) + (dynamic_methods_list.stream().allMatch(method -> method instanceof AbstractMethod)? "0":"")
         );
         SymbolTable.getGenerator().write(CodegenConfig.LINE_SEPARATOR);
     }
@@ -180,7 +178,6 @@ public class Class extends Entity {
     private void inheritAttributes(Class superClass) {
         superClass.getAttributes().forEach(this::addPublicAttributes);
         superClass.getInstanceAttributes().reversed().forEach(instance_attributes::addFirst);
-        // superClass.getClassAttributes().reversed().forEach(class_attributes::addFirst); TODO: check
     }
 
     private void inheritMethods(Class superClass) {
@@ -188,48 +185,26 @@ public class Class extends Entity {
         superClass.getDynamicMethods().reversed().forEach(this::inheritMethod);
     }
 
-    private void inheritAbstractMethods(Class superClass) {
-        superClass.getAbstractMethods().forEach(method -> {
-            if (abstractMethods.containsKey(method.getName())) {
-                if (!abstractMethods.get(method.getName()).isCompatible(method))
-                    SymbolTable.saveError(
-                        String.format(SemanticErrorMessages.ABSTRACT_METHOD_BAD_REDEFINED, method.getToken().getLexeme()),
-                        abstractMethods.get(method.getName()).getToken()
-                    );
-            } else if (methods.containsKey(method.getName())) {
-                if (!methods.get(method.getName()).isCompatible(method)) SymbolTable.saveError(
-                    SemanticErrorMessages.ABSTRACT_METHOD_BAD_IMPLEMENTED,
-                    methods.get(method.getName()).getToken()
-                );
-            } else abstractMethods.put(method.getName(), method);
-        });
-    }
-
     private void inheritMethod(Method method) {
-        List<Method> methods_list = method.isStatic()? static_methods_list:dynamic_methods_list;
-
         if (!methods.containsKey(method.getName()) && !abstractMethods.containsKey(method.getName())) {
-            if (!method.isPrivate()) methods.put(method.getName(), method);
-            methods_list.addFirst(method); // TODO: check
-        } else if (abstractMethods.containsKey(method.getName())) {
-            if (!abstractMethods.get(method.getName()).isCompatible(method) && !method.isPrivate()) {
-                SymbolTable.saveError(
-                    String.format(SemanticErrorMessages.ABSTRACT_METHOD_BAD_OVERRIDE, method.getToken().getLexeme()),
-                    abstractMethods.get(method.getName()).getToken()
-                );
+            if (!method.isPrivate())  {
+                if (method instanceof AbstractMethod abstractMethod) abstractMethods.put(abstractMethod.getName(), abstractMethod);
+                else methods.put(method.getName(), method);
             }
-            // TODO: methods_list.addFirst(method);
+            if (!method.isStatic()) dynamic_methods_list.addFirst(method);
         } else {
-            Method redefined = methods.get(method.getName());
+            Method redefined = methods.containsKey(method.getName())?
+                methods.get(method.getName()):
+                abstractMethods.get(method.getName());
 
             if (!redefined.isCompatible(method) && !method.isPrivate())
                 SymbolTable.saveError(SemanticErrorMessages.METHOD_BAD_REDEFINED, redefined.getToken());
 
             if (!method.isPrivate() && !method.isStatic()) {
-                methods_list.remove(redefined);
-                methods_list.addFirst(redefined);
-            } else if (!method.isStatic()) { // TODO: check
-                methods_list.addFirst(method);
+                dynamic_methods_list.remove(redefined);
+                dynamic_methods_list.addFirst(redefined);
+            } else if (!method.isStatic()) {
+                dynamic_methods_list.addFirst(method);
             }
         }
     }
@@ -318,7 +293,11 @@ public class Class extends Entity {
                 String.format(SemanticErrorMessages.ABSTRACT_METHOD_DUPLICATE, method.getToken().getLexeme()),
                 method.getToken()
             );
-        else abstractMethods.put(method.getName(), method);
+        else {
+            abstractMethods.put(method.getName(), method);
+            if (method.isStatic()) static_methods_list.addLast(method);
+            else dynamic_methods_list.addLast(method);
+        }
     }
 
     // ------------------------------------- Attributes  --------------------------------------------------------------
@@ -475,30 +454,13 @@ public class Class extends Entity {
     }
 
     private void setMethodsOffsets() {
-        boolean isMiniIterable = isMiniIterable();
         for (int i = 0; i < dynamic_methods_list.size(); ++i) {
             dynamic_methods_list.get(i).setOffset(i);
-            if (isMiniIterable) miniIterableOffset(dynamic_methods_list.get(i));
         }
     }
 
     private void setAttributesOffsets() {
         for (int i = 0; i < instance_attributes.size(); ++i)
             instance_attributes.get(i).setOffset(i+1);
-    }
-
-
-    private boolean isMiniIterable() {
-        Type type = Type.createType(getToken(), getTypeParameters());
-        return type instanceof ClassType classType && classType.getAncestor(MiniIterable.name) != null;
-    }
-
-    private void miniIterableOffset(Method method) {
-        switch (method.getName()) {
-            case MiniIterable.METHOD_START_NAME -> method.setOffset(MiniIterable.METHOD_START_OFFSET);
-            case MiniIterable.METHOD_HASNEXT_NAME -> method.setOffset(MiniIterable.METHOD_HASNEXT_OFFSET);
-            case MiniIterable.METHOD_NEXT_NAME -> method.setOffset(MiniIterable.METHOD_NEXT_OFFSET);
-            default -> method.setOffset(method.getOffset()+3);
-        }
     }
 }
