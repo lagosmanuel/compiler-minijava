@@ -1,0 +1,23 @@
+///[SinErrores]
+// palabras claves
+class
+boolean
+if
+switch
+this
+extends
+char
+else
+case
+new
+public
+int
+while
+break
+null
+static
+return
+true
+void
+var
+false

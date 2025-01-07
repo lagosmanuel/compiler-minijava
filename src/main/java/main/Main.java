@@ -34,10 +34,10 @@ public class Main {
     public static void main(String[] args) {
         init();
 
-        if (args.length == 2) {
+        if (args.length == 1) {
             if (loadFile(args[0])) {
-                //showTokens();
-                compile(args[1]);
+                showTokens();
+                showErrors(errors);
                 closeFile();
             }
         } else {
@@ -89,22 +89,6 @@ public class Main {
 
         if (!onRecovery && token != null && token.getType() == TokenType.EOF)
             System.out.println(ErrorMessages.SUCCESS);
-    }
-
-    private static void compile(String output_filename) {
-        try {
-            SymbolTable.init(errors, output_filename);
-            parser.parse();
-            SymbolTable.validate();
-            SymbolTable.consolidate();
-            SymbolTable.check();
-            SymbolTable.generate();
-        } catch (SyntacticException | SemanticException error) {
-            System.out.println(error.getMessage());
-        } finally {
-            if (errors.isEmpty()) System.out.println(ErrorMessages.SUCCESS);
-            else showErrors(errors);
-        }
     }
 
     private static void showErrors(Map<Integer, Pair<List<Error>, String>> errors) {

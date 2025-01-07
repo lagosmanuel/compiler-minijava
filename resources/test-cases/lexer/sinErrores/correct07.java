@@ -1,0 +1,11 @@
+///[SinErrores]
+// puntuación
+(
+)
+{
+}
+;
+,
+.
+:
+
