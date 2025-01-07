@@ -10,6 +10,8 @@ import main.java.symboltable.entities.type.Type;
 import main.java.symboltable.entities.type.PrimitiveType;
 import main.java.codegen.Instruction;
 import main.java.codegen.Comment;
+import main.java.codegen.Labeler;
+import main.java.config.CodegenConfig;
 
 public class BinaryExpression extends CompositeExpression {
     private final CompositeExpression left;
@@ -121,9 +123,51 @@ public class BinaryExpression extends CompositeExpression {
     @Override
     public void generate() {
         if (left == null || right == null || operator == null) return;
-        left.generate();
-        right.generate();
 
+        left.generate();
+
+        switch (operator.getType()) {
+            case opAnd -> {
+                String labelEnd = Labeler.getLabel(true, CodegenConfig.AND_END);
+                SymbolTable.getGenerator().write(
+                    Instruction.DUP.toString()
+                );
+                SymbolTable.getGenerator().write(
+                    Instruction.BF.toString(), labelEnd
+                );
+                right.generate();
+                SymbolTable.getGenerator().write(
+                    Instruction.AND.toString(),
+                    Comment.OP_BINARY.formatted(operator.getLexeme())
+                );
+                SymbolTable.getGenerator().write(
+                    Labeler.getLabel(CodegenConfig.LABEL, labelEnd),
+                    Instruction.NOP.toString()
+                );
+                return;
+            }
+            case opOr -> {
+                String labelEnd = Labeler.getLabel(true, CodegenConfig.OR_END);
+                SymbolTable.getGenerator().write(
+                    Instruction.DUP.toString()
+                );
+                SymbolTable.getGenerator().write(
+                    Instruction.BT.toString(), labelEnd
+                );
+                right.generate();
+                SymbolTable.getGenerator().write(
+                    Instruction.OR.toString(),
+                    Comment.OP_BINARY.formatted(operator.getLexeme())
+                );
+                SymbolTable.getGenerator().write(
+                    Labeler.getLabel(CodegenConfig.LABEL, labelEnd),
+                    Instruction.NOP.toString()
+                );
+                return;
+            }
+        }
+
+        right.generate();
         switch (operator.getType()) {
             case opPlus -> SymbolTable.getGenerator().write(
                 Instruction.ADD.toString(),
@@ -143,14 +187,6 @@ public class BinaryExpression extends CompositeExpression {
             );
             case opMod -> SymbolTable.getGenerator().write(
                 Instruction.MOD.toString(),
-                Comment.OP_BINARY.formatted(operator.getLexeme())
-            );
-            case opAnd -> SymbolTable.getGenerator().write(
-                Instruction.AND.toString(),
-                Comment.OP_BINARY.formatted(operator.getLexeme())
-            );
-            case opOr -> SymbolTable.getGenerator().write(
-                Instruction.OR.toString(),
                 Comment.OP_BINARY.formatted(operator.getLexeme())
             );
             case opEqual -> SymbolTable.getGenerator().write(

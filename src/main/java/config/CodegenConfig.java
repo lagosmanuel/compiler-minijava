@@ -38,4 +38,6 @@ public class CodegenConfig {
     public static final String FOR_END = "_for_end";
     public static final String FOR_BLOCK_END = "_for_block_end";
     public static final String FOR_CONDITION = "_for_condition";
+    public static final String AND_END = "_and_end";
+    public static final String OR_END = "_or_end";
 }
