@@ -1,12 +1,12 @@
-# MiniJava Compiler
+# Mini-Java Compiler
 
-This project implements a compiler for the **MiniJava** programming language, a
+This project implements a compiler for the _Mini-Java programming language_, a
 subset of Java designed for educational purposes. The compiler generates code
-for a virtual machine developed by the **Compilers and Interpreters** course at
+for a virtual machine developed by the Compilers and Interpreters course at
 the _Department of Computer Science and Engineering_, _National University of
 the South_. Visit the [website of the Department](https://cs.uns.edu.ar).
 
-MiniJava supports **object-oriented programming**, allowing the definition of
+Mini-Java supports object-oriented programming, allowing the definition of
 classes, methods, constructors, and the use of attributes and local variables
 with basic and user-defined types, as well as a simple structure for managing
 inheritance and performing basic operations on objects.
@@ -14,8 +14,8 @@ inheritance and performing basic operations on objects.
 ## Objective
 
 The main goal of this project is to provide a tool that translates source code
-written in MiniJava into intermediate code that can be executed on a custom
-virtual machine. This project is part of the **Compilers and Interpreters**
+written in Mini-Java into intermediate code that can be executed on a custom
+virtual machine. This project is part of the Compilers and Interpreters
 course, where fundamental concepts for the development of compilers and
 programming languages are explored.
 
@@ -29,11 +29,11 @@ phases of a compiler. The main stages are as follows:
    as keywords, identifiers, operators, etc.).
 
 2. **Syntactic Analysis**: In this stage, the compiler constructs an abstract
-   syntax tree (AST) from the token sequence. The syntax rules of the MiniJava
+   syntax tree (AST) from the token sequence. The syntax rules of the Mini-Java
    language are validated here.
 
 3. **Semantic Analysis**: During this phase, the code is checked for semantic
-   correctness, ensuring that expressions, data types, and declarations are
+   correctness, ensuring that expressions, data types and declarations are
    valid (for example, checking that variables are used after being declared).
 
 4. **Code Generation**: Finally, the intermediate code is converted into
@@ -49,16 +49,17 @@ The compiler supports the following language features:
 - **Method Overloading**: It is possible to define multiple methods with the
   same name but a different number of parameters.
 - **Inheritance**: Basic support for class inheritance.
-- **Primitive Types**: Support for types such as `int`, `char`, `boolean`, and
+- **Abstract Classes**: Support for abstract classes.
+- **Primitive Types**: Support for types such as `int`, `char`, `boolean` and
   `String`.
-- **Basic Operators**: Support for arithmetic, logical, and comparison
+- **Basic Operators**: Support for arithmetic, logical and comparison
   operators.
-- **Wrapper Classes**: Support for wrapper classes `Integer`, `Character`, and
+- **Wrapper Classes**: Support for wrapper classes `Integer`, `Character` and
   `Boolean`.
-- **Control Flow**: `if`, `if-else`, `switch` statements, and `while`, `for`,
+- **Control Flow**: `if`, `if-else`, `switch` statements; and `while`, `for`
   and `foreach` loops.
 - **Attribute Hiding**: Support for hiding inherited attributes. 
-- **Super Access**: Support for accessing the superclass constructors, methods,
+- **Super Access**: Support for accessing the superclass constructors, methods
   and attributes.
 - **Standard Library Methods**: The compiler provides a standard library of
   classes, such as `System` with methods for output and input handling.
@@ -73,15 +74,12 @@ The following features are currently not supported:
   methods and attributes is supported.
 - **Exceptions**: No support for exception handling (`try-catch`).
 - **Interfaces**: Support for interfaces is not yet available.
-- **Abstract Classes**: Support for abstract classes is not yet available.
 - **Generics**: No support for generic classes or methods has been implemented.
 - **Arrays**: No support for arrays.
-- **Increment and Decrement Operators**: No support for increment and decrement
-  operators has been ihttps://github.com/lagosmanuel/compiler-minjava/tree/main/srcmplemented, but they can be replaced with the augmented
-  assignment operators `+=` and `-=`.
+- **Pre-Increment and Post-Increment Operators**: No support for pre-increment (e.g. ++i) and post-decrement
+  (e.g. i++) operators has been implemented, but post-increment can be replaced with the augmented
+  assignment operator `+=` (e.g. i+=1). Idem with the decrement version.
 - **Float Type**: No support for the `Float` type.
-- **Short-Circuit Logical Operators**: The logical operators `&&` and `||` are
-  implemented with eager evaluation, not short-circuit evaluation.
 
 ## Grammar
 
@@ -94,8 +92,8 @@ The LL(1) Context-Free Grammar of the language's syntax can be found in the file
 ## Compile the Project
    1. Clone the Project.
    ```bash
-   git clone https://github.com/lagosmanuel/compiler-minijava.git
-   cd compiler-minijava
+   git clone https://github.com/lagosmanuel/mini-java.git
+   cd mini-java
    ```
    2. Compile the Project.
    ```bash
@@ -103,7 +101,7 @@ The LL(1) Context-Free Grammar of the language's syntax can be found in the file
    ```
 
 ## Example
-   1. Compile the example program
+   1. Compile the [example program](resources/examples/example.java).
    ```bash
    java -cp out main.java.main.Main resources/examples/example.java example.out
    ```
