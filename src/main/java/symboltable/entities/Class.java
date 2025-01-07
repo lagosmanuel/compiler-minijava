@@ -32,7 +32,7 @@ public class Class extends Entity {
     protected final Map<String, Method> methods = new HashMap<>();
     protected final Map<String, Constructor> constructors = new HashMap<>();
     protected final Map<String, AbstractMethod> abstractMethods = new HashMap<>();
-    protected final Map<String, List<Attribute>> attributes = new HashMap<>();
+    protected final Map<String, Attribute> attributes = new HashMap<>();
     protected final List<TypeVar> type_parameters = new ArrayList<>();
 
     protected final List<Attribute> own_attributes = new ArrayList<>();
@@ -68,7 +68,7 @@ public class Class extends Entity {
         for (Constructor constructor:constructors.values()) constructor.validate();
         for (Method method:methods.values()) method.validate();
         for (AbstractMethod abstractMethod:abstractMethods.values()) abstractMethod.validate();
-        for (List<Attribute> attribute_list:attributes.values()) attribute_list.getFirst().validate();
+        for (Attribute attribute:attributes.values()) attribute.validate();
 
         if (constructors.isEmpty()) {
             Constructor constructor = SymbolTable.getNewDefaultConstructor();
@@ -176,7 +176,7 @@ public class Class extends Entity {
     }
 
     private void inheritAttributes(Class superClass) {
-        superClass.getAttributes().forEach(this::addPublicAttributes);
+        superClass.getAttributes().forEach(this::addPublicAttribute);
         superClass.getInstanceAttributes().reversed().forEach(instance_attributes::addFirst);
     }
 
@@ -302,7 +302,7 @@ public class Class extends Entity {
 
     // ------------------------------------- Attributes  --------------------------------------------------------------
 
-    public Map<String, List<Attribute>> getAttributes() {
+    public Map<String, Attribute> getAttributes() {
         return attributes;
     }
 
@@ -311,7 +311,7 @@ public class Class extends Entity {
     }
 
     public Attribute getAttribute(String attr_name) {
-        return attributes.containsKey(attr_name)? attributes.get(attr_name).getFirst():null;
+        return attributes.getOrDefault(attr_name, null);
     }
 
 
@@ -327,16 +327,10 @@ public class Class extends Entity {
             );
         else {
             own_attributes.addLast(attribute);
-            attributes.put(attribute.getName(), new ArrayList<>(List.of(attribute)));
+            attributes.put(attribute.getName(), attribute);
             if (attribute.isStatic()) class_attributes.addLast(attribute);
             else instance_attributes.addLast(attribute);
         }
-    }
-
-    private void addAttributes(String attr_name, List<Attribute> attr_list) {
-        if (attr_list == null || attr_list.isEmpty()) return;
-        if (attributes.containsKey(attr_name)) attributes.get(attr_name).addAll(attr_list);
-        else attributes.put(attr_name, new ArrayList<>(attr_list));
     }
 
     public List<Attribute> getInstanceAttributes() {
@@ -347,20 +341,17 @@ public class Class extends Entity {
         return own_attributes;
     }
 
-    private void addPublicAttributes(String attr_name, List<Attribute> attr_list) {
-        if (attr_list.getFirst().isPrivate()) return; // TODO: check
-        addAttributes(attr_name, attr_list.stream().filter(attr -> !attr.isPrivate()).toList());
+    private void addPublicAttribute(String attr_name, Attribute attribute) {
+        if (!attribute.isPrivate() && !attributes.containsKey(attr_name))
+            attributes.put(attr_name, attribute);
     }
 
     private void checkAttributeInitialization() throws SemanticException {
         SymbolTable.actualBlock = new Block(new Token(TokenType.leftBrace, "{", 0, 0));
         SymbolTable.actualUnit = new Method("", new Token(TokenType.idMetVar, "", 0, 0));
 
-        for (Attribute attribute:own_attributes) {
-            if (!attributes.containsKey(attribute.getName())) continue;
-            if (!attributes.get(attribute.getName()).isEmpty()) attributes.get(attribute.getName()).removeFirst();
-            if (attributes.get(attribute.getName()).isEmpty()) attributes.remove(attribute.getName());
-        }
+        for (Attribute attribute:own_attributes)
+            attributes.remove(attribute.getName());
 
         for (Attribute attribute:own_attributes) {
             if (attribute.isStatic()) SymbolTable.actualUnit.setStatic();
@@ -380,8 +371,7 @@ public class Class extends Entity {
                 }
             }
 
-            if (attributes.containsKey(attribute.getName())) attributes.get(attribute.getName()).addFirst(attribute);
-            else attributes.put(attribute.getName(), new ArrayList<>(List.of(attribute)));
+            attributes.put(attribute.getName(), attribute);
         }
 
         SymbolTable.actualBlock = null;
