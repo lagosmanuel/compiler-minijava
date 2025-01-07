@@ -34,7 +34,7 @@ public class SymbolTable {
     private static Token EOF;
     private static Generator generator;
 
-    public static void init(Map<Integer, Pair<List<Error>, String>> errors_map, String output_filename) {
+    public static void init(Map<Integer, Pair<List<Error>, String>> errors_map) {
         errors = errors_map;
         classes.clear();
         actualClass = null;
@@ -43,7 +43,6 @@ public class SymbolTable {
         addPrimitiveClasses();
         hasMain = false;
         EOF = null;
-        generator = new Generator(output_filename);
         Labeler.reset();
         Strings.reset();
     }

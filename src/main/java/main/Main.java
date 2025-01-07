@@ -34,10 +34,10 @@ public class Main {
     public static void main(String[] args) {
         init();
 
-        if (args.length == 2) {
+        if (args.length == 1) {
             if (loadFile(args[0])) {
                 //showTokens();
-                compile(args[1]);
+                compile();
                 closeFile();
             }
         } else {
@@ -91,14 +91,13 @@ public class Main {
             System.out.println(ErrorMessages.SUCCESS);
     }
 
-    private static void compile(String output_filename) {
+    private static void compile() {
         try {
-            SymbolTable.init(errors, output_filename);
+            SymbolTable.init(errors);
             parser.parse();
             SymbolTable.validate();
             SymbolTable.consolidate();
             SymbolTable.check();
-            SymbolTable.generate();
         } catch (SyntacticException | SemanticException error) {
             System.out.println(error.getMessage());
         } finally {
