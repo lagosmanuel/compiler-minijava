@@ -192,6 +192,7 @@ public class Class extends Entity {
                 else methods.put(method.getName(), method);
             }
             if (!method.isStatic()) dynamic_methods_list.addFirst(method);
+            else static_methods_list.addFirst(method);
         } else {
             Method redefined = methods.containsKey(method.getName())?
                 methods.get(method.getName()):
